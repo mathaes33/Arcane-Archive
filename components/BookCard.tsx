@@ -1,79 +1,68 @@
-
 import React from 'react';
-import { motion, Variants } from 'framer-motion';
-import { Book } from '@/types';
-import { DownloadIcon } from '@/components/Icons';
+import { BookMetadata } from '../types';
 
 interface BookCardProps {
-  book: Book;
-  onViewDetails: (book: Book) => void;
+  book: BookMetadata;
+  onDownload: (book: BookMetadata) => void;
+  onDelete: (book: BookMetadata) => void;
 }
 
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
-};
-
-export const BookCard: React.FC<BookCardProps> = React.memo(({ book, onViewDetails }) => {
+export const BookCard: React.FC<BookCardProps> = ({ book, onDownload, onDelete }) => {
   return (
-    <motion.div 
-      variants={cardVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
-      className="group relative flex flex-col bg-black/30 backdrop-blur-sm border border-gold-900/50 rounded-lg overflow-hidden transition-all duration-300 ease-in-out hover:shadow-2xl hover:shadow-gold-700/20 hover:border-gold-700"
-    >
-      <div className="relative h-64 md:h-72 w-full overflow-hidden">
-        <img 
-          src={book.coverImage} 
-          alt={`Cover of ${book.title}`} 
-          loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-      </div>
-
-      <div className="p-5 flex flex-col flex-grow">
-        <h3 className="font-serif text-lg md:text-xl font-bold text-gold-200 tracking-wider group-hover:text-gold-300 transition-colors">{book.title}</h3>
-        <p className="text-sm text-stone-400 mt-1">{book.author} ({book.year})</p>
+    <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
+      <div className="flex items-start space-x-4">
+        {/* Cover thumbnail */}
+        <div className="w-16 h-20 bg-gray-200 rounded flex-shrink-0 flex items-center justify-center">
+          {book.cover_url ? (
+            <img src={book.cover_url} alt={book.title} className="w-full h-full object-cover rounded" />
+          ) : (
+            <span className="text-gray-400 text-xs">📖</span>
+          )}
+        </div>
         
-        <div className="mt-4 flex flex-wrap gap-2">
-          {book.tags.map(tag => (
-            <span key={tag} className="px-2 py-1 text-xs bg-gold-900/50 text-gold-300 rounded-full">
-              {tag}
-            </span>
-          ))}
+        {/* Book info */}
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-lg truncate">{book.title}</h3>
+          {book.author && (
+            <p className="text-gray-600 text-sm">by {book.author}</p>
+          )}
+          {book.description && (
+            <p className="text-gray-500 text-sm mt-1 line-clamp-2">{book.description}</p>
+          )}
+          
+          {/* Tags */}
+          <div className="flex flex-wrap gap-1 mt-2">
+            {book.tags.map(tag => (
+              <span key={tag} className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
+          
+          {/* Metadata */}
+          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+            <span>{(book.file_size / 1024 / 1024).toFixed(1)} MB</span>
+            <span>{book.file_type}</span>
+            {book.ai_processed && <span className="text-green-600">✨ AI Enhanced</span>}
+          </div>
+        </div>
+        
+        {/* Actions */}
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={() => onDownload(book)}
+            className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+          >
+            Download
+          </button>
+          <button
+            onClick={() => onDelete(book)}
+            className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+          >
+            Delete
+          </button>
         </div>
       </div>
-      
-      <div className="p-5 pt-0 mt-auto grid grid-cols-2 gap-3">
-        <button
-          onClick={() => onViewDetails(book)}
-          className="flex items-center justify-center w-full px-4 py-2 bg-transparent text-gold-300 rounded-md border border-gold-800 font-serif tracking-wider text-sm transition-all duration-300 ease-in-out hover:bg-gold-900/50 hover:border-gold-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-void focus:ring-gold-500"
-        >
-          View Details
-        </button>
-        {book.fileUrl && book.fileUrl !== '#' ? (
-            <a 
-                href={book.fileUrl} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="flex items-center justify-center w-full px-4 py-2 bg-gold-800/80 text-gold-100 rounded-md border border-gold-700 font-serif tracking-wider text-sm transition-all duration-300 ease-in-out hover:bg-gold-700 hover:shadow-lg hover:shadow-gold-500/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-void focus:ring-gold-500"
-            >
-                <DownloadIcon className="w-4 h-4 mr-2" />
-                Read
-            </a>
-        ) : (
-            <button 
-                disabled 
-                className="flex items-center justify-center w-full px-4 py-2 bg-stone-700/50 text-stone-400 rounded-md border border-stone-600 font-serif tracking-wider text-sm cursor-not-allowed"
-            >
-                <DownloadIcon className="w-4 h-4 mr-2" />
-                Read
-            </button>
-        )}
-
-      </div>
-    </motion.div>
+    </div>
   );
-});
+};
